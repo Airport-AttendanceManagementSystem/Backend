@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AaslUser } from '@common/entity/aasl-user.entity';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 
 @Injectable()
 export class CreateAsslUserRepository {
@@ -29,5 +29,15 @@ export class CreateAsslUserRepository {
 
   updateStatus(username: string, status: number) {
     return this.userRepository.update({ username }, { userStatus: status });
+  }
+
+  updatePassword(
+    username: string,
+    hashedPassword: string,
+  ): Promise<UpdateResult> {
+    return this.userRepository.update(
+      { username },
+      { password: hashedPassword },
+    );
   }
 }

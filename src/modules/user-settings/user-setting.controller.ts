@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -11,6 +13,7 @@ import { UserSettingsService } from '@modules/user-settings/user-setting.service
 import { CreateAaslUserDto } from '@modules/user-settings/dto/create-assl-user.dto';
 import { UpdateUserStatusDto } from '@modules/user-settings/dto/update-user-status.dto';
 import { AaslUserSectionDto } from '@modules/user-settings/dto/aasl-user-section.dto';
+import { ChangePasswordDto } from '@modules/user-settings/dto/change-password.dto';
 
 @Controller('user-settings')
 export class UserSettingController {
@@ -52,5 +55,11 @@ export class UserSettingController {
     @Body() dto: UpdateUserStatusDto,
   ) {
     return this.userSettingsService.updateUserStatus(username, dto.userStatus);
+  }
+
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  async changePassword(@Body() changePasswordDto: ChangePasswordDto) {
+    return await this.userSettingsService.changePassword(changePasswordDto);
   }
 }

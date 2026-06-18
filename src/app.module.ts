@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserSettingModule } from '@modules/user-settings/user-setting.module';
 import { AttendanceReportModule } from '@modules/attendance-settings/attendance-setting.module';
+import { AuthSettingModule } from '@modules/auth-setting/auth-seeting.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AttendanceReportModule } from '@modules/attendance-settings/attendance-
     }),
     UserSettingModule,
     AttendanceReportModule,
+    AuthSettingModule,
   ],
   controllers: [],
   providers: [],

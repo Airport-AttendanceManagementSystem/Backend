@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersTb } from '@common/entity/users-tb.entity';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 
 @Injectable()
 export class UserstbRepository {
@@ -25,5 +25,12 @@ export class UserstbRepository {
 
   updateStatus(userName: string, status: string) {
     return this.repo.update({ userName }, { userStatus: status });
+  }
+
+  updatePassword(
+    userName: string,
+    hashedPassword: string,
+  ): Promise<UpdateResult> {
+    return this.repo.update({ userName }, { password: hashedPassword });
   }
 }

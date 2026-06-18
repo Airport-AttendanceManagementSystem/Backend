@@ -20,6 +20,10 @@ export class CreateAaslUserDto {
 
   @IsString()
   @IsNotEmpty()
+  confirmPassword: string;
+
+  @IsString()
+  @IsNotEmpty()
   userType: string;
 
   @IsString()

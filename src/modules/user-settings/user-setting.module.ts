@@ -23,5 +23,6 @@ import { AaslUserSection } from '@common/entity/aasl-user-section.entity';
     DepartmentRepository,
     AaslUserSectionRepository,
   ],
+  exports: [CreateAsslUserRepository],
 })
 export class UserSettingModule {}

@@ -14,6 +14,7 @@ import { AaslUserSectionRepository } from '@modules/user-settings/repositories/a
 import { DataSource } from 'typeorm';
 import { AaslUserSectionDto } from '@modules/user-settings/dto/aasl-user-section.dto';
 import { AaslUserSection } from '@common/entity/aasl-user-section.entity';
+import { ChangePasswordDto } from '@modules/user-settings/dto/change-password.dto';
 
 @Injectable()
 export class UserSettingsService {
@@ -26,7 +27,7 @@ export class UserSettingsService {
   ) {}
 
   async createUser(dto: CreateAaslUserDto) {
-    if (dto.password !== dto.password) {
+    if (dto.password !== dto.confirmPassword) {
       throw new BadRequestException(
         'Password and confirm password do not match',
       );
@@ -132,5 +133,38 @@ export class UserSettingsService {
     await this.usersTbRepository.updateStatus(username, statusText);
 
     return { message: 'User status updated successfully', userStatus };
+  }
+
+  async changePassword(dto: ChangePasswordDto) {
+    const existingUser = await this.createAsslUserRepository.findByUsername(
+      dto.username,
+    );
+
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isPasswordMatching = await bcrypt.compare(
+      dto.currentPassword,
+      existingUser.password,
+    );
+
+    if (!isPasswordMatching) {
+      throw new BadRequestException('Current password is incorrect');
+    }
+
+    const hashedNewPassword = await bcrypt.hash(dto.newPassword, 10);
+
+    await this.createAsslUserRepository.updatePassword(
+      dto.username,
+      hashedNewPassword,
+    );
+
+    await this.usersTbRepository.updatePassword(
+      dto.username,
+      hashedNewPassword,
+    );
+
+    return { message: 'Password updated successfully' };
   }
 }
