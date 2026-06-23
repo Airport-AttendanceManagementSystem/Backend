@@ -14,7 +14,7 @@ export class TbSmsInfo {
   @Column({ name: 'SMSTYPE', type: 'int', nullable: true })
   smsType: number;
 
-  @Column({ name: 'SMSCONTENT', type: 'longtext', nullable: true })
+  @Column({ name: 'SMSCONTENT', type: 'nvarchar', length: 'max' as any, nullable: true })
   smsContent: string;
 
   @Column({ name: 'SMSSTARTTM', type: 'varchar', length: 32, nullable: true })

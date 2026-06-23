@@ -5,7 +5,7 @@ export class UsersTb {
   @PrimaryColumn({ name: 'userName', type: 'varchar', length: 50 })
   userName: string;
 
-  @Column({ name: 'password', type: 'longtext', nullable: true })
+  @Column({ name: 'password', type: 'nvarchar', length: 'max' as any, nullable: true })
   password: string;
 
   @Column({ name: 'userType', type: 'varchar', length: 50, nullable: true })

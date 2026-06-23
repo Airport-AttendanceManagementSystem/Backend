@@ -49,6 +49,7 @@ export class AuthSettingService {
       user: {
         username: user.username,
         role: user.userType,
+        deptId: user.deptId ?? null,
       },
     };
   }

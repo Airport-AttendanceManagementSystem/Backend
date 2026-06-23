@@ -1,8 +1,8 @@
 import { Controller, Get, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { generateCsv } from './exporters/csv-exporter';
-import { generatePdf } from './exporters/pdf-exporter';
-import { generateWord } from './exporters/word-exporter';
+import { generateFormattedReportPdf } from './exporters/pdf-exporter';
+import { generateFormattedReportWord } from './exporters/word-exporter';
 import { GetAttendanceReportDto } from '@modules/attendance-settings/dto/get-attendance-report.dto';
 import { AttendanceReportService } from '@modules/attendance-settings/attendance-setting.service';
 
@@ -23,10 +23,7 @@ export class AttendanceReportController {
     const { records } = await this.service.generateReport(filter);
     const csv = generateCsv(records);
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename=attendance-report.csv',
-    );
+    res.setHeader('Content-Disposition', 'attachment; filename=attendance-report.csv');
     res.send(csv);
   }
 
@@ -35,8 +32,8 @@ export class AttendanceReportController {
     @Query() filter: GetAttendanceReportDto,
     @Res() res: Response,
   ) {
-    const { records } = await this.service.generateReport(filter);
-    generatePdf(records, res);
+    const { records, reportType } = await this.service.generateReport(filter);
+    generateFormattedReportPdf(records, reportType ?? 'daily', filter as any, res);
   }
 
   @Get('export/word')
@@ -44,16 +41,23 @@ export class AttendanceReportController {
     @Query() filter: GetAttendanceReportDto,
     @Res() res: Response,
   ) {
-    const { records } = await this.service.generateReport(filter);
-    const buffer = await generateWord(records);
+    const { records, reportType } = await this.service.generateReport(filter);
+    const buffer = await generateFormattedReportWord(records, reportType ?? 'daily', filter as any);
     res.setHeader(
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     );
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename=attendance-report.docx',
-    );
+    res.setHeader('Content-Disposition', 'attachment; filename=attendance-report.docx');
     res.send(buffer);
+  }
+
+  @Get('export/serial-epf-pdf')
+  async exportSerialEpfPdf(
+    @Query() filter: GetAttendanceReportDto,
+    @Res() res: Response,
+  ) {
+    const overrideFilter = { ...filter, reportType: 'serial' };
+    const { records } = await this.service.generateReport(overrideFilter);
+    generateFormattedReportPdf(records, 'serial', filter as any, res);
   }
 }

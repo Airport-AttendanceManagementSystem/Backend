@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { UserSettingsService } from '@modules/user-settings/user-setting.service';
 import { CreateAaslUserDto } from '@modules/user-settings/dto/create-assl-user.dto';
@@ -32,6 +33,13 @@ export class UserSettingController {
   @Get('departments')
   getAllDepartment() {
     return this.userSettingsService.getAllDepartments();
+  }
+
+  @Get('sections')
+  getSections(@Query('deptId') deptId?: string) {
+    return this.userSettingsService.getSectionsByDept(
+      deptId ? Number(deptId) : undefined,
+    );
   }
 
   @Get('user/:username')

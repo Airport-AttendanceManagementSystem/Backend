@@ -78,7 +78,9 @@ export class UserSettingsService {
   }
 
   async getAllDepartments() {
-    return this.departmentRepository.findAll();
+    // Only return top-level divisions (direct children of AASL root = SUPDEPTID 1 or 0)
+    const all = await this.departmentRepository.findAll();
+    return all.filter(d => d.supDeptId === 1 || d.supDeptId === 0);
   }
 
   async getUserSections(username: string) {
@@ -133,6 +135,27 @@ export class UserSettingsService {
     await this.usersTbRepository.updateStatus(username, statusText);
 
     return { message: 'User status updated successfully', userStatus };
+  }
+
+  async getSectionsByDept(
+    deptId?: number,
+  ): Promise<{ sectionId: number; sectionName: string }[]> {
+    if (!deptId) return [];
+
+    const results: { deptId: number; deptName: string }[] =
+      await this.dataSource
+        .createQueryBuilder()
+        .select('d.deptId', 'deptId')
+        .addSelect('d.deptName', 'deptName')
+        .from('DEPARTMENTS', 'd')
+        .where('d.supDeptId = :deptId', { deptId })
+        .orderBy('d.deptName', 'ASC')
+        .getRawMany();
+
+    return results.map((r) => ({
+      sectionId: r.deptId,
+      sectionName: r.deptName,
+    }));
   }
 
   async changePassword(dto: ChangePasswordDto) {

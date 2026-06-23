@@ -44,12 +44,12 @@ export class SchClass {
   @Column({ name: 'AutoBind', type: 'smallint', default: 1 })
   autoBind: number;
 
-  @Column({ name: 'WorkDay', type: 'double', default: 1 })
+  @Column({ name: 'WorkDay', type: 'float', default: 1 })
   workDay: number;
 
   @Column({ name: 'SensorID', type: 'varchar', length: 5, nullable: true })
   sensorId: string;
 
-  @Column({ name: 'WorkMins', type: 'double', default: 0 })
+  @Column({ name: 'WorkMins', type: 'float', default: 0 })
   workMins: number;
 }

@@ -39,4 +39,12 @@ export class GetAttendanceReportDto {
   @IsOptional()
   @IsString()
   toTime?: string; // 'HH:mm'
+
+  @IsOptional()
+  @IsString()
+  deptName?: string;
+
+  @IsOptional()
+  @IsString()
+  sectionName?: string;
 }

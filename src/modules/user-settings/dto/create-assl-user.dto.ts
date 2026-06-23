@@ -1,6 +1,7 @@
 import {
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   Matches,
   MinLength,
@@ -26,9 +27,10 @@ export class CreateAaslUserDto {
   @IsNotEmpty()
   userType: string;
 
-  @IsString()
-  @IsNotEmpty()
-  userStatus: number;
+  @IsOptional()
+  userStatus?: number;
+
+  @IsOptional()
   @IsNumber()
   deptId?: number;
 }

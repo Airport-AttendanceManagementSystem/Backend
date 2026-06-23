@@ -8,7 +8,7 @@ export class LeaveClass1 {
   @Column({ name: 'LeaveName', type: 'varchar', length: 20 })
   leaveName: string;
 
-  @Column({ name: 'MinUnit', type: 'double', default: 1 })
+  @Column({ name: 'MinUnit', type: 'float', default: 1 })
   minUnit: number;
 
   @Column({ name: 'Unit', type: 'smallint', default: 0 })
@@ -23,7 +23,7 @@ export class LeaveClass1 {
   @Column({ name: 'ReportSymbol', type: 'varchar', length: 4, default: '-' })
   reportSymbol: string;
 
-  @Column({ name: 'Deduct', type: 'double', default: 0 })
+  @Column({ name: 'Deduct', type: 'float', default: 0 })
   deduct: number;
 
   @Column({ name: 'LeaveType', type: 'smallint', default: 0 })
@@ -35,6 +35,6 @@ export class LeaveClass1 {
   @Column({ name: 'Classify', type: 'smallint', default: 0 })
   classify: number;
 
-  @Column({ name: 'Calc', type: 'longtext', nullable: true })
+  @Column({ name: 'Calc', type: 'nvarchar', length: 'max' as any, nullable: true })
   calc: string;
 }
