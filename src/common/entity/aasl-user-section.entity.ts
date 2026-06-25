@@ -1,10 +1,10 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, PrimaryColumn } from 'typeorm';
 
 @Entity('aaslusersection')
 export class AaslUserSection {
   @PrimaryColumn({ name: 'username', type: 'varchar', length: 100 })
   username: string;
 
-  @Column({ name: 'section', type: 'int', nullable: true })
+  @PrimaryColumn({ name: 'section', type: 'int' })
   section: number;
 }

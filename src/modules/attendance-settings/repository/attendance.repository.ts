@@ -13,35 +13,44 @@ export class AttendanceReportRepository extends Repository<CheckInOut> {
   async getOptimizedReport(filters: GetAttendanceReportDto): Promise<any[]> {
     const query = this.createQueryBuilder('c')
       .innerJoin('userinfo', 'u', 'u.USERID = c.USERID')
+      .leftJoin('machines', 'm', 'm.sn = c.sn')
       .select([
         'c.USERID as userId',
         'u.BADGENUMBER as badgeNumber',
         'u.NAME as name',
         'c.CHECKTIME as checkTime',
         'c.CHECKTYPE as checkType',
+        'm.MachineAlias as location',
       ]);
 
     if (filters.section) {
-      query.andWhere('u.DEFAULTDEPTID = :section', { section: filters.section });
+      query.andWhere('u.DEFAULTDEPTID = :section', {
+        section: filters.section,
+      });
     } else if (filters.deptId) {
       query.andWhere('u.DEFAULTDEPTID = :deptId', { deptId: filters.deptId });
     }
 
     if (filters.badgeNumber) {
-      query.andWhere('u.BADGENUMBER LIKE :epf', { epf: `%${filters.badgeNumber}%` });
+      query.andWhere('u.BADGENUMBER LIKE :epf', {
+        epf: `%${filters.badgeNumber}%`,
+      });
     }
 
     if (filters.checkType) {
       let dbCheckType = filters.checkType.toUpperCase();
-      if (dbCheckType === 'IN')  dbCheckType = 'I';
+      if (dbCheckType === 'IN') dbCheckType = 'I';
       if (dbCheckType === 'OUT') dbCheckType = 'O';
       query.andWhere('c.CHECKTYPE = :type', { type: dbCheckType });
     }
 
     if (filters.fromDate && filters.toDate) {
       const from = `${filters.fromDate} ${filters.fromTime || '00:00:00'}`;
-      const to   = `${filters.toDate}   ${filters.toTime   || '23:59:59'}`;
-      query.andWhere('c.CHECKTIME >= :from AND c.CHECKTIME <= :to', { from, to });
+      const to = `${filters.toDate}   ${filters.toTime || '23:59:59'}`;
+      query.andWhere('c.CHECKTIME >= :from AND c.CHECKTIME <= :to', {
+        from,
+        to,
+      });
     }
 
     query.orderBy('c.CHECKTIME', 'DESC');
@@ -52,20 +61,24 @@ export class AttendanceReportRepository extends Repository<CheckInOut> {
   async getSerialEpfReport(filters: GetAttendanceReportDto): Promise<any[]> {
     const query = this.dataSource
       .createQueryBuilder()
-      .select('u.USERID',      'serialNo')
+      .select('u.USERID', 'serialNo')
       .addSelect('u.BADGENUMBER', 'epfNo')
-      .addSelect('u.NAME',        'name')
+      .addSelect('u.NAME', 'name')
       .from('userinfo', 'u')
       .where('u.ATT = 1');
 
     if (filters.section) {
-      query.andWhere('u.DEFAULTDEPTID = :section', { section: filters.section });
+      query.andWhere('u.DEFAULTDEPTID = :section', {
+        section: filters.section,
+      });
     } else if (filters.deptId) {
       query.andWhere('u.DEFAULTDEPTID = :deptId', { deptId: filters.deptId });
     }
 
     if (filters.badgeNumber) {
-      query.andWhere('u.BADGENUMBER LIKE :epf', { epf: `%${filters.badgeNumber}%` });
+      query.andWhere('u.BADGENUMBER LIKE :epf', {
+        epf: `%${filters.badgeNumber}%`,
+      });
     }
 
     query.orderBy('u.USERID', 'ASC');
@@ -77,12 +90,12 @@ export class AttendanceReportRepository extends Repository<CheckInOut> {
     if (!filters.fromDate || !filters.toDate) return [];
 
     const fromDate = filters.fromDate;
-    const toDate   = filters.toDate;
+    const toDate = filters.toDate;
 
     const query = this.dataSource
       .createQueryBuilder()
       .select('u.BADGENUMBER', 'badgeNumber')
-      .addSelect('u.NAME',    'name')
+      .addSelect('u.NAME', 'name')
       .from('userinfo', 'u')
       .where('u.ATT = 1')
       .andWhere(
@@ -97,16 +110,55 @@ export class AttendanceReportRepository extends Repository<CheckInOut> {
       );
 
     if (filters.section) {
-      query.andWhere('u.DEFAULTDEPTID = :section', { section: filters.section });
+      query.andWhere('u.DEFAULTDEPTID = :section', {
+        section: filters.section,
+      });
     } else if (filters.deptId) {
       query.andWhere('u.DEFAULTDEPTID = :deptId', { deptId: filters.deptId });
     }
 
     if (filters.badgeNumber) {
-      query.andWhere('u.BADGENUMBER LIKE :epf', { epf: `%${filters.badgeNumber}%` });
+      query.andWhere('u.BADGENUMBER LIKE :epf', {
+        epf: `%${filters.badgeNumber}%`,
+      });
     }
 
     query.orderBy('u.NAME', 'ASC');
+    return query.getRawMany();
+  }
+
+  // ── Monthly Attendance Raw Records (for matrix PDF) ─────────────────────────
+  async getMonthlyRawRecords(filters: GetAttendanceReportDto): Promise<any[]> {
+    if (!filters.fromDate || !filters.toDate) return [];
+
+    const from = `${filters.fromDate} 00:00:00`;
+    const to = `${filters.toDate} 23:59:59`;
+
+    const query = this.createQueryBuilder('c')
+      .innerJoin('userinfo', 'u', 'u.USERID = c.USERID')
+      .select([
+        'u.BADGENUMBER as badgeNumber',
+        'u.NAME as name',
+        'c.CHECKTIME as checkTime',
+        'c.CHECKTYPE as checkType',
+      ])
+      .where('c.CHECKTIME >= :from AND c.CHECKTIME <= :to', { from, to });
+
+    if (filters.section) {
+      query.andWhere('u.DEFAULTDEPTID = :section', {
+        section: filters.section,
+      });
+    } else if (filters.deptId) {
+      query.andWhere('u.DEFAULTDEPTID = :deptId', { deptId: filters.deptId });
+    }
+
+    if (filters.badgeNumber) {
+      query.andWhere('u.BADGENUMBER LIKE :epf', {
+        epf: `%${filters.badgeNumber}%`,
+      });
+    }
+
+    query.orderBy('u.BADGENUMBER', 'ASC').addOrderBy('c.CHECKTIME', 'ASC');
     return query.getRawMany();
   }
 
@@ -115,13 +167,13 @@ export class AttendanceReportRepository extends Repository<CheckInOut> {
     if (!filters.fromDate || !filters.toDate) return [];
 
     const from = `${filters.fromDate} ${filters.fromTime || '00:00:00'}`;
-    const to   = `${filters.toDate}   ${filters.toTime   || '23:59:59'}`;
+    const to = `${filters.toDate}   ${filters.toTime || '23:59:59'}`;
 
     const query = this.dataSource
       .createQueryBuilder()
-      .select('u.BADGENUMBER',                        'badgeNumber')
-      .addSelect('u.NAME',                            'name')
-      .addSelect("FORMAT(c.CHECKTIME, 'yyyy-MM')",    'month')
+      .select('u.BADGENUMBER', 'badgeNumber')
+      .addSelect('u.NAME', 'name')
+      .addSelect("FORMAT(c.CHECKTIME, 'yyyy-MM')", 'month')
       .addSelect('COUNT(DISTINCT CAST(c.CHECKTIME AS DATE))', 'daysPresent')
       .from('checkinout', 'c')
       .innerJoin('userinfo', 'u', 'u.USERID = c.USERID')
@@ -129,13 +181,17 @@ export class AttendanceReportRepository extends Repository<CheckInOut> {
       .andWhere("c.CHECKTYPE = 'I'");
 
     if (filters.section) {
-      query.andWhere('u.DEFAULTDEPTID = :section', { section: filters.section });
+      query.andWhere('u.DEFAULTDEPTID = :section', {
+        section: filters.section,
+      });
     } else if (filters.deptId) {
       query.andWhere('u.DEFAULTDEPTID = :deptId', { deptId: filters.deptId });
     }
 
     if (filters.badgeNumber) {
-      query.andWhere('u.BADGENUMBER LIKE :epf', { epf: `%${filters.badgeNumber}%` });
+      query.andWhere('u.BADGENUMBER LIKE :epf', {
+        epf: `%${filters.badgeNumber}%`,
+      });
     }
 
     query

@@ -47,7 +47,7 @@ export class UserSettingsService {
       password: hashedPassword,
       userType: dto.userType,
       deptId: dto.deptId,
-      userStatus: 0, // Inactive by default — admin must activate via User Activation
+      userStatus: 1,
     });
 
     await this.usersTbRepository.create({
@@ -91,7 +91,41 @@ export class UserSettingsService {
     return sections.map((s) => s.section);
   }
 
+  private async ensureCompositePrimaryKey(): Promise<void> {
+    const pkCols: { COLUMN_NAME: string }[] = await this.dataSource.query(`
+      SELECT kcu.COLUMN_NAME
+      FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+      JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+        ON kcu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+      WHERE tc.TABLE_NAME = 'aaslusersection'
+        AND tc.CONSTRAINT_TYPE = 'PRIMARY KEY'
+    `);
+
+    const cols = pkCols.map(r => r.COLUMN_NAME.toLowerCase());
+    if (cols.includes('section')) return; // already composite, nothing to do
+
+    const constraints: { constraint_name: string }[] = await this.dataSource.query(`
+      SELECT kc.name AS constraint_name
+      FROM sys.key_constraints kc
+      INNER JOIN sys.tables t ON kc.parent_object_id = t.object_id
+      WHERE t.name = 'aaslusersection' AND kc.type = 'PK'
+    `);
+
+    if (constraints.length > 0) {
+      const name = constraints[0].constraint_name;
+      await this.dataSource.query(`ALTER TABLE [dbo].[aaslusersection] DROP CONSTRAINT [${name}]`);
+      // section column must be NOT NULL before it can be part of a PK
+      await this.dataSource.query(`ALTER TABLE [dbo].[aaslusersection] ALTER COLUMN [section] INT NOT NULL`);
+      await this.dataSource.query(
+        `ALTER TABLE [dbo].[aaslusersection] ADD CONSTRAINT [PK_aaslusersection] PRIMARY KEY ([username], [section])`,
+      );
+    }
+  }
+
   async saveUserSections(dto: AaslUserSectionDto) {
+    // Ensure DB table has composite PK (username, section) before inserting
+    await this.ensureCompositePrimaryKey();
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -102,13 +136,12 @@ export class UserSettingsService {
         username: dto.username,
       });
 
-      // Insert new sections
-      if (dto.sections && dto.sections.length > 0) {
-        const newSections = dto.sections.map((sectionId) => ({
-          username: dto.username,
-          section: sectionId,
-        }));
-        await queryRunner.manager.insert(AaslUserSection, newSections);
+      // Insert new sections one-by-one to avoid batch insert PK issues
+      for (const sectionId of dto.sections ?? []) {
+        await queryRunner.query(
+          `INSERT INTO [dbo].[aaslusersection] ([username], [section]) VALUES (@0, @1)`,
+          [dto.username, sectionId],
+        );
       }
 
       await queryRunner.commitTransaction();

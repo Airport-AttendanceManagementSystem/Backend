@@ -6,6 +6,10 @@ import { GetAttendanceReportDto } from '@modules/attendance-settings/dto/get-att
 export class AttendanceReportService {
   constructor(private readonly attendanceRepo: AttendanceReportRepository) {}
 
+  async getMonthlyPdfRecords(filter: GetAttendanceReportDto) {
+    return this.attendanceRepo.getMonthlyRawRecords(filter);
+  }
+
   async generateReport(filter: GetAttendanceReportDto) {
     const type = (filter.reportType ?? '').toLowerCase();
 
@@ -29,6 +33,7 @@ export class AttendanceReportService {
 
     // ── Daily Attendance / default ──────────────────────────────────────────
     const records = await this.attendanceRepo.getOptimizedReport(filter);
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     const enriched = records.map((r) => ({
       ...r,
