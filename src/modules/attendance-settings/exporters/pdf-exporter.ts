@@ -353,7 +353,7 @@ export function generateFormattedReportPdf(
         isNaN(d.getTime()) ? '-' : d.toLocaleDateString('en-GB'),
         isNaN(d.getTime()) ? '-' : d.toLocaleTimeString('en-GB'),
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        r.checkTypeDisplay ?? (r.checkType === 'I' ? 'IN' : 'OUT'),
+        r.checkTypeDisplay ?? (r.checkType === 'I' ? 'I' : 'O'),
       ],
       i % 2 === 0,
     );
@@ -503,7 +503,7 @@ export function generateMonthlyMatrixPdf(
   }
 
   // ── Header height on first-chunk pages ───────────────────────────────────
-  const HDR_H = 88; // logo + title + division/section/month lines
+  const HDR_H = 120; // logo + company header + title + division/section/month lines
 
   // ── Split employees into batches (based on first date chunk) ─────────────
   const firstChunkDates = dateChunks[0].dates;
@@ -556,6 +556,22 @@ export function generateMonthlyMatrixPdf(
           /* logo missing */
         }
         y += 45;
+
+        doc.font('Helvetica-Bold').fontSize(11).fillColor('#001A4D');
+        doc.text('AIRPORT & AVIATION SERVICES (SRI LANKA) LIMITED', ML, y, {
+          align: 'center',
+          width: TABLE_W,
+        });
+        y = doc.y + 2;
+
+        doc.font('Helvetica').fontSize(9).fillColor('black');
+        doc.text('BANDARANAIKE INTERNATIONAL AIRPORT', ML, y, {
+          align: 'center',
+          width: TABLE_W,
+        });
+        y = doc.y + 1;
+        doc.text('KATUNAYAKE', ML, y, { align: 'center', width: TABLE_W });
+        y = doc.y + 4;
 
         doc.font('Helvetica-Bold').fontSize(11).fillColor('#001A4D');
         doc.text('MONTHLY ATTENDANCE REPORT', ML, y, {

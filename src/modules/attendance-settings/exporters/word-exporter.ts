@@ -96,11 +96,11 @@ function aaslHeaderParagraphs(
     );
   }
   if (!deptName && !sectionName) {
-    divisionRows.push(
-      new Paragraph({
-        children: [new TextRun({ text: `DATE :  ${date}`, size: 20 })],
-      }),
-    );
+    //divisionRows.push(
+    //   new Paragraph({
+    //    children: [new TextRun({ text: `DATE :  ${date}`, size: 20 })],
+    //  }),
+    // );
   }
   divisionRows.push(new Paragraph({ children: [] }));
 
@@ -315,7 +315,7 @@ export async function generateFormattedReportWord(
           ),
           dCell(
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument
-            r.checkTypeDisplay ?? (r.checkType === 'I' ? 'IN' : 'OUT'),
+            r.checkTypeDisplay ?? (r.checkType === 'I' ? 'I' : 'O'),
             i % 2 === 0,
           ),
         ],

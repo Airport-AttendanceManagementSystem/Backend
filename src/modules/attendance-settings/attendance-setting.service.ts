@@ -38,7 +38,7 @@ export class AttendanceReportService {
     const enriched = records.map((r) => ({
       ...r,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      checkTypeDisplay: r.checkType === 'I' ? 'IN' : 'OUT',
+      checkTypeDisplay: r.checkType === 'I' ? 'I' : 'O',
     }));
     return { reportType: 'daily', total: enriched.length, records: enriched };
   }

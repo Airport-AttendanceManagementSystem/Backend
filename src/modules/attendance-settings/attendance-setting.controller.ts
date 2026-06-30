@@ -23,8 +23,8 @@ export class AttendanceReportController {
     @Query() filter: GetAttendanceReportDto,
     @Res() res: Response,
   ) {
-    const { records } = await this.service.generateReport(filter);
-    const csv = generateCsv(records);
+    const { records, reportType } = await this.service.generateReport(filter);
+    const csv = generateCsv(records, reportType);
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader(
       'Content-Disposition',
